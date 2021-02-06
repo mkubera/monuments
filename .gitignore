@@ -1,0 +1,18 @@
+.cache
+dist
+.DS_Store
+elm-stuff
+node_modules/
+npm-debug.log*
+.netlify
+repl-temp-*
+cypress/screenshots/*
+cypress/videos/*
+
+# yarn
+.yarn/*
+!.yarn/cache
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions

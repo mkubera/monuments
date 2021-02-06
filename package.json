@@ -1,0 +1,34 @@
+{
+  "name": "monuments",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev -p 8888",
+    "dev:live": "netlify dev --live",
+    "start": "npx parcel src/index.html --log-level 3 --open",
+    "build": "npm parcel build src/index.html --public-url '.'",
+    "test": "elm-test",
+    "test:watch": "elm-test --watch",
+    "review": "npx elm-review"
+  },
+  "cypress": {
+    "baseUrl": "http://localhost:3000"
+  },
+  "author": "rain",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/types": "^7.12.13",
+    "elm": "^0.19.1-5",
+    "elm-hot": "^1.1.6",
+    "elm-review": "^2.4.1",
+    "netlify-cli": "^3.4.6",
+    "node-elm-compiler": "^5.0.5",
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "airtable": "^0.10.1"
+  }
+}
