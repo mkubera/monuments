@@ -112,6 +112,7 @@ type alias Model =
     , p2PeopleToChange : PeopleCount
     , gameState : GameState
     , randomInt : Int
+    , log : String
     }
 
 
@@ -136,6 +137,7 @@ initialModel _ =
       , p2PeopleToChange = 0
       , gameState = GameLevel
       , randomInt = 0
+      , log = ""
       }
     , initialCmds
     )
@@ -157,7 +159,7 @@ initP1 =
 initP2 =
     Faction ThoseWhoPoison
         [ Building ChildrenOfNihil NoAttention Low
-        , Building (MonumentOfThem 1) NoAttention High
+        , Building (MonumentOfThem 0) NoAttention Low
         , Building SoulEngineers NoAttention Low
         ]
         (List.repeat 5 <| Person Poison)

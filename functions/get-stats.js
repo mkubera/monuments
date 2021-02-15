@@ -1,8 +1,9 @@
 // Docs on event and context https://www.netlify.com/docs/functions/#the-handler-method
 exports.handler = async (event) => {
+  const { DB_API_KEY } = process.env;
   var Airtable = require("airtable");
   var base = new Airtable({
-    apiKey: "YOUR_API_KEY",
+    apiKey: DB_API_KEY,
   }).base("appUOSxxv2dDfXs4t");
 
   base("4")

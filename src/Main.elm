@@ -39,7 +39,6 @@ update msg model =
     case msg of
         EndRound ->
             ( model
-                |> updateGameState
                 |> updatePeopleToChange
                 |> executeAttention
                 |> resetAttentionInBuildings
@@ -47,6 +46,7 @@ update msg model =
                 |> resetPeopleCounts
                 |> incrRoundCount
                 |> opponentActs
+                |> updateGameState
             , Cmd.batch [ rollCmd ]
             )
 
@@ -89,36 +89,41 @@ update msg model =
 
 
 opponentActs model =
+  -- TODO
     model
 
-
-hasDestroyedMonument pType pBuildings =
-    pBuildings
-        |> List.any
+hasDestroyedMonument : FactionName -> Buildings ->Bool
+hasDestroyedMonument fName pBuildings =
+        List.any
             (\b ->
-                case b of
-                    Building bType _ bLevel ->
-                        case ( pType, bType, bLevel ) of
-                            ( ThoseWhoLove, MonumentOfUs _, Destroyed ) ->
-                                True
+                case (fName,b) of
+                  (ThoseWhoLove, (Building (MonumentOfUs _) _ _)) -> False
+                  (ThoseWhoPoison, (Building (MonumentOfThem _) _ _)) -> False
+                  _ -> True
+                -- case b of
+                --     Building bType _ bLevel ->
+                --         case ( pType, bType, bLevel ) of
+                --             ( ThoseWhoLove, MonumentOfUs _, Destroyed ) ->
+                --                 True
 
-                            ( ThoseWhoPoison, MonumentOfThem _, Destroyed ) ->
-                                True
+                --             ( ThoseWhoPoison, MonumentOfThem _, Destroyed ) ->
+                --                 True
 
-                            _ ->
-                                False
+                --             _ ->
+                --                 False
 
-                    NoBuilding ->
-                        False
+                --     NoBuilding ->
+                --         False
             )
+            pBuildings
 
 
 updateGameState ({ p1, p2, gameState } as model) =
     let
-        (Faction p1Type p1Buildings p1People) =
+        (Faction p1FactionName p1Buildings p1People) =
             p1
 
-        (Faction p2Type p2Buildings p2People) =
+        (Faction p2FactionName p2Buildings p2People) =
             p2
 
         newGameState =
@@ -132,20 +137,20 @@ updateGameState ({ p1, p2, gameState } as model) =
             else if List.all (\p -> p == Person Poison) p1People then
                 GameLost
 
-            else if hasDestroyedMonument p1Type p1Buildings then
+            else if hasDestroyedMonument p1FactionName p1Buildings then
                 GameLost
                 -- P2 loses (p1 wins)
 
             else if List.all (\p -> p == Person Love) p2People then
                 GameWon
 
-            else if hasDestroyedMonument p2Type p2Buildings then
+            else if hasDestroyedMonument p2FactionName p2Buildings then
                 GameWon
 
             else
                 GameLevel
     in
-    { model | gameState = newGameState }
+    { model | gameState = newGameState, log = Debug.toString (p1FactionName, p1Buildings) }
 
 
 updatePeopleToChange ({ p1, p2, randomInt } as model) =
@@ -650,10 +655,11 @@ bLevelToString bLevel =
 
 
 view : Model -> Html Msg
-view ({ round, p1, p2, attention, maxAttention, gameState, title } as model) =
+view ({ round, p1, p2, attention, maxAttention, gameState, title, log } as model) =
     Element.layout [] <|
         column []
             [ row [ centerX, padding 5 ] [ text (String.toUpper title) ]
+            , row [] [text log]
             , case gameState of
                 GameWon ->
                     row [] [ text "GAME WON!" ]
