@@ -8,7 +8,7 @@
     "dev": "netlify dev -p 8888",
     "dev:live": "netlify dev --live",
     "start": "npx parcel src/index.html --log-level 3 --open",
-    "build": "npm i && npx parcel build src/index.html --public-url '.'",
+    "build": "npx parcel build src/index.html --public-url '.'",
     "test": "elm-test",
     "test:watch": "elm-test --watch",
     "review": "npx elm-review"
