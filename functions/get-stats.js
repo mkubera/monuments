@@ -6,6 +6,8 @@ exports.handler = async (event) => {
     apiKey: DB_API_KEY,
   }).base("appUOSxxv2dDfXs4t");
 
+  console.log("config loaded");
+
   base("4")
     .select({
       pageSize: 100,
@@ -16,14 +18,11 @@ exports.handler = async (event) => {
       function page(records, fetchNextPage) {
         // This function (`page`) will get called for each page of records.
 
+        console.log("eachPage");
+
         records.forEach(function (record) {
           console.log("Retrieved", record.get("Name"));
         });
-
-        return {
-          statusCode: 200,
-          body: JSON.stringify(records),
-        };
 
         // To fetch the next page of records, call `fetchNextPage`.
         // If there are more records, `page` will get called again.
@@ -35,6 +34,12 @@ exports.handler = async (event) => {
           console.error(err);
           return;
         }
+
+        console.log("done fn");
+        return {
+          statusCode: 200,
+          body: JSON.stringify(records),
+        };
       }
     );
 };
