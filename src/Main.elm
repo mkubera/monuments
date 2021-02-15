@@ -62,6 +62,31 @@ update msg model =
         SaveRandomInt int ->
             ( { model | randomInt = int }, noCmd )
 
+        Build bType fName ->
+            case fName of
+                ThoseWhoLove ->
+                    let
+                        (Faction fType fBuildings fPeople) =
+                            model.p1
+                    in
+                    if List.any (\b -> b == NoBuilding) fBuildings then
+                        let
+                            newBuilding =
+                                newBuildings fBuildings [] bType
+                        in
+                        case bType of
+                            MonumentOfUs _ ->
+                                ( model, noCmd )
+
+                            _ ->
+                                ( { model | p1 = Faction fType newBuilding fPeople }, noCmd )
+
+                    else
+                        ( model, noCmd )
+
+                ThoseWhoPoison ->
+                    ( model, noCmd )
+
 
 opponentActs model =
     model
@@ -645,10 +670,6 @@ view ({ round, p1, p2, attention, maxAttention, gameState, title } as model) =
                         , row [ Font.size 13, Font.italic, centerX, padding 5 ] [ text "Destroy their Monument or convert all their people to Love." ]
                         , viewFaction p1
                         , viewFaction p2
-
-                        --, row [] [ text <| Debug.toString fPeople ]
-                        --, row [] [ text <| Debug.toString p2 ]
-                        --,row [centerX] [ el [ Region.heading 1 ] (text p1Name) ]
                         , row [ padding 5, centerX ] [ el [ Font.bold ] (text ("ROUND " ++ String.fromInt round)) ]
                         , row [ padding 5, centerX ] [ btn [] EndRound "End Round" ]
                         ]
@@ -737,25 +758,27 @@ viewBuildings fName fBuildings =
         List.map
             (\bldg ->
                 let
-                    ( bType, bAttention, bLevel ) =
+                    bldgBgColor =
                         case bldg of
-                            Building bType_ bAttention_ bLevel_ ->
-                                ( bType_, bAttention_, bLevel_ )
+                            Building bType _ _ ->
+                                bTypeToBgColor bType
 
                             NoBuilding ->
-                                ( PsycheDancers, NoAttention, Destroyed )
-
-                    bldgBgColor =
-                        bTypeToBgColor bType
+                                rgba255 150 150 150 0.3
 
                     ( attentionBtn1, attentionBtn2, bDescription ) =
                         case fName of
                             ThoseWhoLove ->
-                                ( btn [] (GiveAttention bType Anima) (bAttentionToString Anima bAttention)
-                                , btn [] (GiveAttention bType Animus) (bAttentionToString Animus bAttention)
-                                , row [ width fill, centerX, Font.size 14 ]
-                                    [ paragraph [] [ text (bAttentionToDescription bType bAttention) ] ]
-                                )
+                                case bldg of
+                                    Building bType bAttention _ ->
+                                        ( btn [] (GiveAttention bType Anima) (bAttentionToString Anima bAttention)
+                                        , btn [] (GiveAttention bType Animus) (bAttentionToString Animus bAttention)
+                                        , row [ width fill, centerX, Font.size 14 ]
+                                            [ paragraph [] [ text (bAttentionToDescription bType bAttention) ] ]
+                                        )
+
+                                    NoBuilding ->
+                                        ( none, none, none )
 
                             ThoseWhoPoison ->
                                 ( none, none, none )
@@ -765,32 +788,57 @@ viewBuildings fName fBuildings =
                             guardsCols guards =
                                 List.repeat guards (column [] [ text "💂\u{200D}♂️" ])
                         in
-                        case bType of
-                            MonumentOfUs guards ->
-                                row [ centerX ] (guardsCols guards)
+                        case bldg of
+                            Building bType _ _ ->
+                                case bType of
+                                    MonumentOfUs guards ->
+                                        row [ centerX ] (guardsCols guards)
 
-                            MonumentOfThem guards ->
-                                row [ centerX ] (guardsCols guards)
+                                    MonumentOfThem guards ->
+                                        row [ centerX ] (guardsCols guards)
 
-                            _ ->
-                                none
+                                    _ ->
+                                        none
+                            NoBuilding ->
+                              none
+
+                            
                 in
-                column
-                    [ width (px boardBldgWidth)
-                    , spacing 5
-                    , padding 20
-                    , Background.color bldgBgColor
-                    , Font.size 16
-                    ]
-                    [ row [ width fill, spaceEvenly ]
-                        [ column [ alignLeft ] [ attentionBtn1 ]
-                        , column [ alignLeft ] [ attentionBtn2 ]
-                        , column [ alignRight ] [ el [] (text (bLevelToString bLevel)) ]
-                        ]
-                    , row [ centerX ] [ text (bTypeToString bType) ]
-                    , bDescription
-                    , bGuards
-                    ]
+                case bldg of
+                    Building bType _ bLevel ->
+                        column
+                            [ width (px boardBldgWidth)
+                            , spacing 5
+                            , padding 20
+                            , Background.color bldgBgColor
+                            , Font.size 16
+                            ]
+                            [ row [ width fill, spaceEvenly ]
+                                [ column [ alignLeft ] [ attentionBtn1 ]
+                                , column [ alignLeft ] [ attentionBtn2 ]
+                                , column [ alignRight ] [ el [] (text (bLevelToString bLevel)) ]
+                                ]
+                            , row [ centerX ] [ text (bTypeToString bType) ]
+                            , bDescription
+                            , bGuards
+                            ]
+
+                    NoBuilding ->
+                        column
+                            [ width (px boardBldgWidth)
+                            , spacing 5
+                            , padding 20
+                            , Background.color bldgBgColor
+                            , Font.size 16
+                            ]
+                            [ row [ centerX ] [ text (String.toUpper "No Building") ]
+                            , row [ centerX ]
+                                [ column []
+                                    [ row [ centerX ] [ btn [] (Build PsycheDancers ThoseWhoLove) "PsycheDancers" ]
+                                    , row [ centerX ] [ btn [] (Build ThirdEyeCleansers ThoseWhoLove) "ThirdEyeCleansers" ]
+                                    ]
+                                ]
+                            ]
             )
             fBuildings
 

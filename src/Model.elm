@@ -7,6 +7,7 @@ type Msg
     = EndRound
     | GiveAttention BuildingType BuildingAttention
     | SaveRandomInt Int
+    | Build BuildingType FactionName
 
 
 rollCmd : Cmd Msg
@@ -136,8 +137,12 @@ initialModel _ =
       , gameState = GameLevel
       , randomInt = 0
       }
-    , Cmd.batch [ rollCmd ]
+    , initialCmds
     )
+
+
+initialCmds =
+    Cmd.batch [ rollCmd ]
 
 
 initP1 =

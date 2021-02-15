@@ -203,3 +203,17 @@ newBuildingsAddGuard maxGuards playerBuildings =
                     b
         )
         playerBuildings
+
+
+newBuildings : Buildings -> Buildings -> BuildingType -> Buildings
+newBuildings bldgs acc bType =
+    case bldgs of
+        [] ->
+            acc
+
+        x :: xs ->
+            if x == NoBuilding then
+                Building bType NoAttention Low :: xs ++ acc
+
+            else
+                newBuildings xs (x :: acc) bType
