@@ -8,6 +8,7 @@ type Msg
     | GiveAttention BuildingType BuildingAttention
     | SaveRandomInt Int
     | Build BuildingType FactionName
+    | ChangeGameState GameState
 
 
 rollCmd : Cmd Msg
@@ -129,14 +130,17 @@ initialModel _ =
     ( { round = 1
       , p1 = initP1
       , p2 = initP2
-      , attention = initialAttention
-      , maxAttention = 3
-      , maxGuards = 3
+      , maxAttention = (bLevelToMaxAttention initP1MonumentLevel)
+      -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
+      -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
+      -- current player (no API data)
       , title = "Monuments is what's going to remain of us"
+      , gameState = GameLevel
+      , attention = initialAttention
+      , maxGuards = 3
+      , randomInt = 0
       , p1PeopleToChange = 0
       , p2PeopleToChange = 0
-      , gameState = GameLevel
-      , randomInt = 0
       , log = ""
       }
     , initialCmds
@@ -146,14 +150,46 @@ initialModel _ =
 initialCmds =
     Cmd.batch [ rollCmd ]
 
+initP1MonumentLevel = Low
+initP2MonumentLevel = Low
+bLevelToMaxAttention bLevel =
+  case bLevel of
+    Low -> 1
+    Mid -> 2
+    High -> 3
+    Destroyed -> 0
 
-initP1 =
-    Faction ThoseWhoLove
-        [ NoBuilding
-        , Building (MonumentOfUs 1) NoAttention High
-        , Building PsycheDancers NoAttention Low
+initP1Buldings = 
+  -- [ Building ThirdEyeCleansers NoAttention Low
+  --       , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
+  --       , Building PsycheDancers NoAttention Low
+  --       ]
+  [ NoBuilding
+        , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
+        , NoBuilding
         ]
-        (List.repeat 5 <| Person Love)
+
+initP1People =
+  (List.repeat 5 <| Person Love)
+  
+initP1 =
+    Faction ThoseWhoLove initP1Buldings initP1People
+    -- {
+    --   "faction": {
+    --     "name": "ThoseWhoLove",
+    --     "buildings": [
+    --       {
+    --         "name": "MonumentOfUs 1",
+    --         "attention": "NoAttention",
+    --         "level": "Low"
+    --       }
+    --     ],
+    --     "people": [
+    --       "Love", "Love", "Love", "Poison", "Poison"
+    --     ],
+    --   }
+    -- }
+        
 
 
 initP2 =

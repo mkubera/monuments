@@ -3,6 +3,7 @@ module Update.Attention exposing (..)
 import Model exposing (..)
 
 
+convertP1People : (List Person, number) -> number -> List Person -> List Person
 convertP1People ( people, peopleCount ) acc newPeople =
     case people of
         [] ->
@@ -22,6 +23,7 @@ convertP1People ( people, peopleCount ) acc newPeople =
             convertP1People ( xs, peopleCount ) acc (x :: newPeople)
 
 
+convertP2People : (List Person, number) -> number -> List Person -> List Person
 convertP2People ( people, peopleCount ) acc newPeople =
     case people of
         [] ->
@@ -41,6 +43,7 @@ convertP2People ( people, peopleCount ) acc newPeople =
                 convertP2People ( xs, peopleCount ) (acc + 1) (Person Love :: newPeople)
 
 
+newBuildingsLevelUp : List Building -> List Building
 newBuildingsLevelUp buildings =
     List.map
         (\b ->
@@ -87,6 +90,7 @@ newBuildingsLevelUp buildings =
         buildings
 
 
+newBuildingsLevelDownMonument : FactionName -> List Building -> List Building -> List Building
 newBuildingsLevelDownMonument oppType opponentBuildings playerBuildings =
     let
         ( oppAttackingBuilding, oppMonument, pMonument ) =
@@ -158,6 +162,7 @@ newBuildingsLevelDownMonument oppType opponentBuildings playerBuildings =
         playerBuildings
 
 
+newBuildingsAddGuard : Guards -> List Building -> List Building
 newBuildingsAddGuard maxGuards playerBuildings =
     List.map
         (\b ->

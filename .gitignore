@@ -9,6 +9,9 @@ repl-temp-*
 cypress/screenshots/*
 cypress/videos/*
 
+# env vars
+.env
+
 # yarn
 .yarn/*
 !.yarn/cache

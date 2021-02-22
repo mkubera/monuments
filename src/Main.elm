@@ -32,6 +32,7 @@ import Element.Region as Region
 import Html exposing (Html)
 import Model exposing (..)
 import Update.Attention exposing (..)
+import Html exposing (li)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -47,6 +48,7 @@ update msg model =
                 |> incrRoundCount
                 |> opponentActs
                 |> updateGameState
+                |> updateMaxAttention
             , Cmd.batch [ rollCmd ]
             )
 
@@ -71,7 +73,7 @@ update msg model =
                     in
                     if List.any (\b -> b == NoBuilding) fBuildings then
                         let
-                            newBuilding =
+                            newFactionBuildings =
                                 newBuildings fBuildings [] bType
                         in
                         case bType of
@@ -79,27 +81,57 @@ update msg model =
                                 ( model, noCmd )
 
                             _ ->
-                                ( { model | p1 = Faction fType newBuilding fPeople }, noCmd )
+                                ( { model | p1 = Faction fType newFactionBuildings fPeople }, noCmd )
 
                     else
                         ( model, noCmd )
 
                 ThoseWhoPoison ->
                     ( model, noCmd )
+        ChangeGameState newGameState ->
+          ({model|gameState=newGameState}, noCmd)  
+
+updateMaxAttention : Model -> Model
+updateMaxAttention model =
+  let
+      monumentLevel =
+        let
+          (Faction _ fBuildings _) = model.p1
+          
+        in
+          List.foldl (\b acc-> 
+            case b of
+              (Building (MonumentOfUs _) _ bLevel) -> 
+                  case bLevel of
+                     Low -> acc + 1
+                     Mid -> acc + 2
+                     High -> acc + 3
+                     Destroyed -> acc + 0
+              _ -> acc + 0
+            ) 0 fBuildings
+  in
+    {model |maxAttention= monumentLevel }
 
 
+opponentActs : a -> a
 opponentActs model =
   -- TODO
     model
 
 hasDestroyedMonument : FactionName -> Buildings ->Bool
 hasDestroyedMonument fName pBuildings =
-        List.any
+        List.all
             (\b ->
                 case (fName,b) of
                   (ThoseWhoLove, (Building (MonumentOfUs _) _ _)) -> False
                   (ThoseWhoPoison, (Building (MonumentOfThem _) _ _)) -> False
-                  _ -> True
+                  _ -> 
+                    let
+                        _ = 
+                          Debug.log "hasDestroyedMonument: _ -> " (fName, b)
+                    in
+                    
+                      True
                 -- case b of
                 --     Building bType _ bLevel ->
                 --         case ( pType, bType, bLevel ) of
@@ -115,9 +147,10 @@ hasDestroyedMonument fName pBuildings =
                 --     NoBuilding ->
                 --         False
             )
-            pBuildings
+              pBuildings
 
 
+updateGameState : { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String } -> { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String }
 updateGameState ({ p1, p2, gameState } as model) =
     let
         (Faction p1FactionName p1Buildings p1People) =
@@ -153,6 +186,7 @@ updateGameState ({ p1, p2, gameState } as model) =
     { model | gameState = newGameState, log = Debug.toString (p1FactionName, p1Buildings) }
 
 
+updatePeopleToChange : { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number }
 updatePeopleToChange ({ p1, p2, randomInt } as model) =
     let
         (Faction p1Name p1Buildings p1People) =
@@ -249,6 +283,7 @@ updatePeopleToChange ({ p1, p2, randomInt } as model) =
     }
 
 
+executeAttention : { a | p1 : Faction, p2 : Faction, p1PeopleToChange : number, p2PeopleToChange : number, maxGuards : Guards } -> { a | p1 : Faction, p2 : Faction, p1PeopleToChange : number, p2PeopleToChange : number, maxGuards : Guards }
 executeAttention ({ p1, p2, p1PeopleToChange, p2PeopleToChange, maxGuards } as model) =
     let
         (Faction p1Name p1Buildings p1People) =
@@ -281,6 +316,7 @@ executeAttention ({ p1, p2, p1PeopleToChange, p2PeopleToChange, maxGuards } as m
     }
 
 
+newBuildingsAddGuard : Guards -> List Building -> List Building
 newBuildingsAddGuard maxGuards playerBuildings =
     List.map
         (\b ->
@@ -328,6 +364,7 @@ newBuildingsAddGuard maxGuards playerBuildings =
         playerBuildings
 
 
+resetAttentionInBuildings : { a | p1 : Faction } -> { a | p1 : Faction }
 resetAttentionInBuildings ({ p1 } as model) =
     let
         (Faction fName fBuildings fPeople) =
@@ -341,6 +378,7 @@ resetAttentionInBuildings ({ p1 } as model) =
     }
 
 
+giveNoAttention : Building -> Building
 giveNoAttention building =
     case building of
         Building bType bAttention bLevel ->
@@ -505,14 +543,17 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
     }
 
 
+incrRoundCount : { a | round : number } -> { a | round : number }
 incrRoundCount ({ round } as model) =
     { model | round = round + 1 }
 
 
+resetAttentionCount : { a | attention : number } -> { a | attention : number }
 resetAttentionCount model =
     { model | attention = initialAttention }
 
 
+resetPeopleCounts : { a | p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1PeopleToChange : number, p2PeopleToChange : number }
 resetPeopleCounts ({ p1PeopleToChange, p2PeopleToChange } as model) =
     { model | p1PeopleToChange = 0, p2PeopleToChange = 0 }
 
@@ -561,6 +602,7 @@ bTypeToString bType =
             "MonumentOfThem"
 
 
+descriptions : { anima : String, animus : { psycheDancers : String, thirdEyeCleansers : String, monumentOfUs : String, childrenOfNihil : String, soulEngineers : String, monumentOfThem : String } }
 descriptions =
     { anima = "Increase the building's level."
     , animus =
@@ -659,10 +701,15 @@ view ({ round, p1, p2, attention, maxAttention, gameState, title, log } as model
     Element.layout [] <|
         column []
             [ row [ centerX, padding 5 ] [ text (String.toUpper title) ]
-            , row [] [text log]
+            -- , row [] [text log]
             , case gameState of
                 GameWon ->
-                    row [] [ text "GAME WON!" ]
+                    row [] [ 
+                      column [] [
+                        row [] [text "GAME WON!"]
+                        , row [] [btn [] (ChangeGameState GameLevel) "Start again"]
+                      ]
+                       ]
 
                 GameLost ->
                     row [] [ text "GAME LOST!" ]
@@ -682,6 +729,7 @@ view ({ round, p1, p2, attention, maxAttention, gameState, title, log } as model
             ]
 
 
+viewFaction : Faction -> Element Msg
 viewFaction (Faction fName fBuildings fPeople) =
     row []
         [ column [] <|
@@ -698,6 +746,7 @@ viewFaction (Faction fName fBuildings fPeople) =
         ]
 
 
+viewPeople : List Person -> Element msg
 viewPeople people =
     row [ centerX, padding 12 ] <|
         List.map
@@ -717,18 +766,22 @@ viewPeople people =
             people
 
 
+boardBldgNo : number
 boardBldgNo =
     3
 
 
+boardBldgWidth : number
 boardBldgWidth =
     220
 
 
+boardBldgSpacing : number
 boardBldgSpacing =
     10
 
 
+boardWidth : number
 boardWidth =
     boardBldgWidth * boardBldgNo + boardBldgSpacing * boardBldgNo
 
@@ -849,8 +902,9 @@ viewBuildings fName fBuildings =
             fBuildings
 
 
+btn : List (Element.Attribute msg) -> msg -> String -> Element msg
 btn attrs msg txt =
-    Input.button attrs
+    Input.button (attrs ++ [padding 4, Border.color (rgb255 0 0 0)])
         { onPress = Just msg
         , label = text txt
         }
@@ -871,5 +925,6 @@ main =
         }
 
 
+dummyBuilding : Building
 dummyBuilding =
     NoBuilding
