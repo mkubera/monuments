@@ -133,7 +133,7 @@ initialModel _ =
       , maxAttention = (bLevelToMaxAttention initP1MonumentLevel)
       -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
       -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
-      -- current player (no API data)
+      -- BELOW: current player (no API data)
       , title = "Monuments is what's going to remain of us"
       , gameState = GameLevel
       , attention = initialAttention
