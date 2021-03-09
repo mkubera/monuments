@@ -24,5 +24,9 @@ suite =
           in
             newBuildings fBuildings [] newBuildingType
             |> Expect.equal expectedBuildings
+
+        ,test "Test test" <|
+        \_ ->
+          Expect.equal 1 1
       ]
     ]
