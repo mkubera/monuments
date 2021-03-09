@@ -7,6 +7,8 @@ const { DB_API_KEY } = process.env;
 // }).base("appUOSxxv2dDfXs4t");
 
 exports.handler = async (event) => {
+  console.log("change just for show");
+  
   const url = "https://api.airtable.com/v0/appUOSxxv2dDfXs4t/9?";
   const config = { headers: { Authorization: `Bearer ${DB_API_KEY}` } };
   return axios
