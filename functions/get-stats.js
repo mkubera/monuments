@@ -8,6 +8,8 @@ exports.handler = async (event) => {
 
   console.log("config loaded");
 
+  console.log("change just for show");
+
   base("4")
     .select({
       pageSize: 100,
