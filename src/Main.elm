@@ -791,10 +791,10 @@ viewPeople people fName =
         peopleText =
             case fName of
                 ThoseWhoLove ->
-                    "loving people"
+                    "people of Us"
 
                 ThoseWhoPoison ->
-                    "poison'd people"
+                    "people of Them"
     in
     column [ centerX, padding 12 ]
         [ row [ centerX, paddingEach (PaddingEach 0 0 5 0) ] [ el [ Font.size 14 ] (text peopleText) ]
