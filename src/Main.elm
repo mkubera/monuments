@@ -11,8 +11,10 @@ import Element
         , column
         , el
         , fill
+        , height
         , none
         , padding
+        , paddingEach
         , paragraph
         , px
         , rgb255
@@ -22,7 +24,6 @@ import Element
         , spacing
         , text
         , width
-        , wrappedRow
         )
 import Element.Background as Background
 import Element.Border as Border
@@ -32,7 +33,6 @@ import Element.Region as Region
 import Html exposing (Html)
 import Model exposing (..)
 import Update.Attention exposing (..)
-import Html exposing (li)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,7 +64,7 @@ update msg model =
         SaveRandomInt int ->
             ( { model | randomInt = int }, noCmd )
 
-        Build bType fName ->
+        Build bType fName bldgIndex ->
             case fName of
                 ThoseWhoLove ->
                     let
@@ -74,7 +74,7 @@ update msg model =
                     if List.any (\b -> b == NoBuilding) fBuildings then
                         let
                             newFactionBuildings =
-                                newBuildings fBuildings [] bType
+                                newBuildings fBuildings bType bldgIndex
                         in
                         case bType of
                             MonumentOfUs _ ->
@@ -88,66 +88,81 @@ update msg model =
 
                 ThoseWhoPoison ->
                     ( model, noCmd )
+
         ChangeGameState newGameState ->
-          ({model|gameState=newGameState}, noCmd)  
+            ( { model | gameState = newGameState }, noCmd )
+
 
 updateMaxAttention : Model -> Model
 updateMaxAttention model =
-  let
-      monumentLevel =
-        let
-          (Faction _ fBuildings _) = model.p1
-          
-        in
-          List.foldl (\b acc-> 
-            case b of
-              (Building (MonumentOfUs _) _ bLevel) -> 
-                  case bLevel of
-                     Low -> acc + 1
-                     Mid -> acc + 2
-                     High -> acc + 3
-                     Destroyed -> acc + 0
-              _ -> acc + 0
-            ) 0 fBuildings
-  in
-    {model |maxAttention= monumentLevel }
+    let
+        monumentLevel =
+            let
+                (Faction _ fBuildings _) =
+                    model.p1
+            in
+            List.foldl
+                (\b acc ->
+                    case b of
+                        Building (MonumentOfUs _) _ bLevel ->
+                            case bLevel of
+                                Low ->
+                                    acc + 1
+
+                                Mid ->
+                                    acc + 2
+
+                                High ->
+                                    acc + 3
+
+                                Destroyed ->
+                                    acc + 0
+
+                        _ ->
+                            acc + 0
+                )
+                0
+                fBuildings
+    in
+    { model | maxAttention = monumentLevel }
 
 
 opponentActs : a -> a
 opponentActs model =
-  -- TODO
+    -- TODO
     model
 
-hasDestroyedMonument : FactionName -> Buildings ->Bool
+
+hasDestroyedMonument : FactionName -> Buildings -> Bool
 hasDestroyedMonument fName pBuildings =
-        List.all
-            (\b ->
-                case (fName,b) of
-                  (ThoseWhoLove, (Building (MonumentOfUs _) _ _)) -> False
-                  (ThoseWhoPoison, (Building (MonumentOfThem _) _ _)) -> False
-                  _ -> 
+    List.all
+        (\b ->
+            case ( fName, b ) of
+                ( ThoseWhoLove, Building (MonumentOfUs _) _ _ ) ->
+                    False
+
+                ( ThoseWhoPoison, Building (MonumentOfThem _) _ _ ) ->
+                    False
+
+                _ ->
                     let
-                        _ = 
-                          Debug.log "hasDestroyedMonument: _ -> " (fName, b)
+                        _ =
+                            Debug.log "hasDestroyedMonument: _ -> " ( fName, b )
                     in
-                    
-                      True
-                -- case b of
-                --     Building bType _ bLevel ->
-                --         case ( pType, bType, bLevel ) of
-                --             ( ThoseWhoLove, MonumentOfUs _, Destroyed ) ->
-                --                 True
-
-                --             ( ThoseWhoPoison, MonumentOfThem _, Destroyed ) ->
-                --                 True
-
-                --             _ ->
-                --                 False
-
-                --     NoBuilding ->
-                --         False
-            )
-              pBuildings
+                    True
+         -- case b of
+         --     Building bType _ bLevel ->
+         --         case ( pType, bType, bLevel ) of
+         --             ( ThoseWhoLove, MonumentOfUs _, Destroyed ) ->
+         --                 True
+         --             ( ThoseWhoPoison, MonumentOfThem _, Destroyed ) ->
+         --                 True
+         --             _ ->
+         --                 False
+         --     NoBuilding ->
+         --         False
+        )
+        pBuildings
 
 
 updateGameState : { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String } -> { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String }
@@ -183,7 +198,7 @@ updateGameState ({ p1, p2, gameState } as model) =
             else
                 GameLevel
     in
-    { model | gameState = newGameState, log = Debug.toString (p1FactionName, p1Buildings) }
+    { model | gameState = newGameState, log = Debug.toString ( p1FactionName, p1Buildings ) }
 
 
 updatePeopleToChange : { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number }
@@ -602,9 +617,16 @@ bTypeToString bType =
             "MonumentOfThem"
 
 
-descriptions : { anima : String, animus : { psycheDancers : String, thirdEyeCleansers : String, monumentOfUs : String, childrenOfNihil : String, soulEngineers : String, monumentOfThem : String } }
+descriptions : { anima : { psycheDancers : String, thirdEyeCleansers : String, monumentOfUs : String, childrenOfNihil : String, soulEngineers : String, monumentOfThem : String }, animus : { psycheDancers : String, thirdEyeCleansers : String, monumentOfUs : String, childrenOfNihil : String, soulEngineers : String, monumentOfThem : String } }
 descriptions =
-    { anima = "Increase the building's level."
+    { anima =
+        { psycheDancers = "Increase the building's level."
+        , thirdEyeCleansers = "Increase the building's level."
+        , monumentOfUs = "Increase the building's level. (+1 max Attention Point.)"
+        , childrenOfNihil = "Increase the building's level."
+        , soulEngineers = "Increase the building's level."
+        , monumentOfThem = "Increase the building's level."
+        }
     , animus =
         { psycheDancers = "Lower the level of opponent's Monument by 1 or kill a guard if present. (50% chance of success)."
         , thirdEyeCleansers = "Convert opponent's people (1 + 0-1)."
@@ -626,54 +648,69 @@ bAttentionToDescription bType bAttention =
         ( _, NoAttention ) ->
             ""
 
-        ( _, Anima ) ->
-            descriptions.anima
+        ( PsycheDancers, Anima ) ->
+            descriptions.anima.psycheDancers
 
         ( PsycheDancers, Animus ) ->
             descriptions.animus.psycheDancers
 
         ( PsycheDancers, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.psycheDancers
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.psycheDancers
+
+        ( ThirdEyeCleansers, Anima ) ->
+            descriptions.anima.thirdEyeCleansers
 
         ( ThirdEyeCleansers, Animus ) ->
             descriptions.animus.thirdEyeCleansers
 
         ( ThirdEyeCleansers, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.thirdEyeCleansers
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.thirdEyeCleansers
+
+        ( MonumentOfUs _, Anima ) ->
+            descriptions.anima.monumentOfUs
 
         ( MonumentOfUs _, Animus ) ->
             descriptions.animus.monumentOfUs
 
         ( MonumentOfUs _, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.monumentOfUs
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.monumentOfUs
+
+        ( ChildrenOfNihil, Anima ) ->
+            descriptions.anima.childrenOfNihil
 
         ( ChildrenOfNihil, Animus ) ->
             descriptions.animus.childrenOfNihil
 
         ( ChildrenOfNihil, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.childrenOfNihil
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.childrenOfNihil
+
+        ( SoulEngineers, Anima ) ->
+            descriptions.anima.soulEngineers
 
         ( SoulEngineers, Animus ) ->
             descriptions.animus.soulEngineers
 
         ( SoulEngineers, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.soulEngineers
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.soulEngineers
+
+        ( MonumentOfThem _, Anima ) ->
+            descriptions.anima.monumentOfThem
 
         ( MonumentOfThem _, Animus ) ->
             descriptions.animus.monumentOfThem
 
         ( MonumentOfThem _, AnimaAnimus ) ->
-            descriptions.anima
+            descriptions.anima.monumentOfThem
                 ++ animaAnimusStringJoiner
                 ++ descriptions.animus.monumentOfThem
 
@@ -699,34 +736,51 @@ bLevelToString bLevel =
 view : Model -> Html Msg
 view ({ round, p1, p2, attention, maxAttention, gameState, title, log } as model) =
     Element.layout [] <|
-        column []
-            [ row [ centerX, padding 5 ] [ text (String.toUpper title) ]
-            -- , row [] [text log]
+        column [ width fill, height fill ]
+            [ row [ centerX, centerY, padding 5 ] [ text (String.toUpper title) ]
             , case gameState of
                 GameWon ->
-                    row [] [ 
-                      column [] [
-                        row [] [text "GAME WON!"]
-                        , row [] [btn [] (ChangeGameState GameLevel) "Start again"]
-                      ]
-                       ]
+                    row [ centerX ]
+                        [ column []
+                            [ row [] [ text "GAME WON!" ]
+                            , row [] [ btn [] (ChangeGameState GameLevel) "Start again" ]
+                            ]
+                        ]
 
                 GameLost ->
-                    row [] [ text "GAME LOST!" ]
+                    row [ centerX ]
+                        [ column []
+                            [ row [] [ text "GAME LOST" ]
+                            , row [] [ btn [] (ChangeGameState GameLevel) "Start again" ]
+                            ]
+                        ]
 
                 GameStart ->
-                    row [] [ text "Start menu" ]
+                    row [ centerX ]
+                        [ column []
+                            [ row [] [ text "Start menu" ]
+                            , row [] [ btn [] (ChangeGameState GameLevel) "New game" ]
+                            ]
+                        ]
 
                 GameLevel ->
-                    column [ width fill, centerX ]
-                        [ row [ Font.size 14, centerX ] [ text ("attention: " ++ String.fromInt attention ++ "/" ++ String.fromInt maxAttention) ]
-                        , row [ Font.size 13, Font.italic, centerX, padding 5 ] [ text "Destroy their Monument or convert all their people to Love." ]
+                    column [ centerX, centerY ]
+                        [ row [ Font.size 13, Font.italic, centerX, paddingEach (PaddingEach 0 0 20 0) ] [ text "Destroy their Monument or convert all their people to Love." ]
+                        , row [ padding 5, centerX ] [ el [ Font.bold ] (text ("ROUND " ++ String.fromInt round)) ]
+                        , row [ Font.size 14, centerX ] [ text ("attention pts: " ++ String.fromInt attention ++ "/" ++ String.fromInt maxAttention) ]
+                        , row [ padding 5, centerX ] [ btn [] EndRound "End Round" ]
                         , viewFaction p1
                         , viewFaction p2
-                        , row [ padding 5, centerX ] [ el [ Font.bold ] (text ("ROUND " ++ String.fromInt round)) ]
-                        , row [ padding 5, centerX ] [ btn [] EndRound "End Round" ]
                         ]
             ]
+
+
+type alias PaddingEach =
+    { top : Int
+    , right : Int
+    , bottom : Int
+    , left : Int
+    }
 
 
 viewFaction : Faction -> Element Msg
@@ -814,8 +868,8 @@ viewBuildings fName fBuildings =
         , padding 10
         ]
     <|
-        List.map
-            (\bldg ->
+        List.indexedMap
+            (\index bldg ->
                 let
                     bldgBgColor =
                         case bldg of
@@ -832,7 +886,7 @@ viewBuildings fName fBuildings =
                                     Building bType bAttention _ ->
                                         ( btn [] (GiveAttention bType Anima) (bAttentionToString Anima bAttention)
                                         , btn [] (GiveAttention bType Animus) (bAttentionToString Animus bAttention)
-                                        , row [ width fill, centerX, Font.size 14 ]
+                                        , row [ width fill, centerX, Font.size 14, Font.center ]
                                             [ paragraph [] [ text (bAttentionToDescription bType bAttention) ] ]
                                         )
 
@@ -858,15 +912,15 @@ viewBuildings fName fBuildings =
 
                                     _ ->
                                         none
-                            NoBuilding ->
-                              none
 
-                            
+                            NoBuilding ->
+                                none
                 in
                 case bldg of
                     Building bType _ bLevel ->
                         column
                             [ width (px boardBldgWidth)
+                            , height fill
                             , spacing 5
                             , padding 20
                             , Background.color bldgBgColor
@@ -883,6 +937,26 @@ viewBuildings fName fBuildings =
                             ]
 
                     NoBuilding ->
+                        let
+                            availableBuildingTypes : Buildings -> List BuildingType -> List BuildingType
+                            availableBuildingTypes bldgs newBldgTypes =
+                                case bldgs of
+                                    [] ->
+                                        newBldgTypes
+
+                                    x :: xs ->
+                                        case x of
+                                            Building bType _ _ ->
+                                                -- remove BuildingType if building already exists
+                                                if List.member bType newBldgTypes then
+                                                    availableBuildingTypes xs (List.filter (\newBType -> newBType /= bType) newBldgTypes)
+
+                                                else
+                                                    availableBuildingTypes xs newBldgTypes
+
+                                            NoBuilding ->
+                                                availableBuildingTypes xs newBldgTypes
+                        in
                         column
                             [ width (px boardBldgWidth)
                             , spacing 5
@@ -892,10 +966,12 @@ viewBuildings fName fBuildings =
                             ]
                             [ row [ centerX ] [ text (String.toUpper "No Building") ]
                             , row [ centerX ]
-                                [ column []
-                                    [ row [ centerX ] [ btn [] (Build PsycheDancers ThoseWhoLove) "PsycheDancers" ]
-                                    , row [ centerX ] [ btn [] (Build ThirdEyeCleansers ThoseWhoLove) "ThirdEyeCleansers" ]
-                                    ]
+                                [ column [] <|
+                                    List.map
+                                        (\building ->
+                                            row [ centerX ] [ btn [] (Build building ThoseWhoLove index) (bTypeToString building) ]
+                                        )
+                                        (availableBuildingTypes fBuildings [ PsycheDancers, ThirdEyeCleansers ])
                                 ]
                             ]
             )
@@ -904,7 +980,7 @@ viewBuildings fName fBuildings =
 
 btn : List (Element.Attribute msg) -> msg -> String -> Element msg
 btn attrs msg txt =
-    Input.button (attrs ++ [padding 4, Border.color (rgb255 0 0 0)])
+    Input.button (attrs ++ [ padding 4, Border.color (rgb255 0 0 0) ])
         { onPress = Just msg
         , label = text txt
         }
