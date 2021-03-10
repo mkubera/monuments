@@ -775,34 +775,46 @@ viewFaction (Faction fName fBuildings fPeople) =
             case fName of
                 ThoseWhoLove ->
                     [ viewBuildings fName fBuildings
-                    , viewPeople fPeople
+                    , viewPeople fPeople ThoseWhoLove
                     ]
 
                 ThoseWhoPoison ->
-                    [ viewPeople fPeople
+                    [ viewPeople fPeople ThoseWhoPoison
                     , viewBuildings fName fBuildings
                     ]
         ]
 
 
-viewPeople : List Person -> Element msg
-viewPeople people =
-    row [ centerX, padding 12 ] <|
-        List.map
-            (\p ->
-                column []
-                    [ case p of
-                        Person Love ->
-                            text "💕 "
+viewPeople : List Person -> FactionName -> Element msg
+viewPeople people fName =
+    let
+        peopleText =
+            case fName of
+                ThoseWhoLove ->
+                    "loving people"
 
-                        Person Poison ->
-                            text "🍄 "
+                ThoseWhoPoison ->
+                    "poison'd people"
+    in
+    column [ centerX, padding 12 ]
+        [ row [ centerX, paddingEach (PaddingEach 0 0 5 0) ] [ el [ Font.size 14 ] (text peopleText) ]
+        , row [] <|
+            List.map
+                (\p ->
+                    column []
+                        [ case p of
+                            Person Love ->
+                                text "💕 "
 
-                        Person Neutral ->
-                            text "🎭"
-                    ]
-            )
-            people
+                            Person Poison ->
+                                text "🍄 "
+
+                            Person Neutral ->
+                                text "🎭"
+                        ]
+                )
+                people
+        ]
 
 
 boardBldgNo : number
