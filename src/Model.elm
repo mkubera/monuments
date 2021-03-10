@@ -10,7 +10,10 @@ type Msg
     | Build BuildingType FactionName Index
     | ChangeGameState GameState
 
-type alias Index = Int
+
+type alias Index =
+    Int
+
 
 rollCmd : Cmd Msg
 rollCmd =
@@ -114,7 +117,6 @@ type alias Model =
     , p2PeopleToChange : PeopleCount
     , gameState : GameState
     , randomInt : Int
-    , log : String
     }
 
 
@@ -131,7 +133,8 @@ initialModel _ =
     ( { round = 1
       , p1 = initP1
       , p2 = initP2
-      , maxAttention = (bLevelToMaxAttention initP1MonumentLevel)
+      , maxAttention = bLevelToMaxAttention initP1MonumentLevel
+
       -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
       -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
       -- BELOW: current player (no API data)
@@ -142,7 +145,6 @@ initialModel _ =
       , randomInt = 0
       , p1PeopleToChange = 0
       , p2PeopleToChange = 0
-      , log = ""
       }
     , initialCmds
     )
@@ -151,46 +153,65 @@ initialModel _ =
 initialCmds =
     Cmd.batch [ rollCmd ]
 
-initP1MonumentLevel = Low
-initP2MonumentLevel = Low
-bLevelToMaxAttention bLevel =
-  case bLevel of
-    Low -> 1
-    Mid -> 2
-    High -> 3
-    Destroyed -> 0
 
-initP1Buldings = 
-  -- [ Building ThirdEyeCleansers NoAttention Low
-  --       , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
-  --       , Building PsycheDancers NoAttention Low
-  --       ]
-  [ NoBuilding
-        , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
-        , NoBuilding
-        ]
+initP1MonumentLevel =
+    Low
+
+
+initP2MonumentLevel =
+    Low
+
+
+bLevelToMaxAttention bLevel =
+    case bLevel of
+        Low ->
+            1
+
+        Mid ->
+            2
+
+        High ->
+            3
+
+        Destroyed ->
+            0
+
+
+initP1Buldings =
+    -- [ Building ThirdEyeCleansers NoAttention Low
+    --       , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
+    --       , Building PsycheDancers NoAttention Low
+    --       ]
+    [ NoBuilding
+    , Building (MonumentOfUs 1) NoAttention initP1MonumentLevel
+    , NoBuilding
+    ]
+
 
 initP1People =
-  (List.repeat 5 <| Person Love)
-  
+    List.repeat 5 <| Person Love
+
+
 initP1 =
     Faction ThoseWhoLove initP1Buldings initP1People
-    -- {
-    --   "faction": {
-    --     "name": "ThoseWhoLove",
-    --     "buildings": [
-    --       {
-    --         "name": "MonumentOfUs 1",
-    --         "attention": "NoAttention",
-    --         "level": "Low"
-    --       }
-    --     ],
-    --     "people": [
-    --       "Love", "Love", "Love", "Poison", "Poison"
-    --     ],
-    --   }
-    -- }
-        
+
+
+
+-- {
+--   "faction": {
+--     "name": "ThoseWhoLove",
+--     "buildings": [
+--       {
+--         "name": "MonumentOfUs 1",
+--         "attention": "NoAttention",
+--         "level": "Low"
+--       }
+--     ],
+--     "people": [
+--       "Love", "Love", "Love", "Poison", "Poison"
+--     ],
+--   }
+-- }
 
 
 initP2 =

@@ -145,28 +145,13 @@ hasDestroyedMonument fName pBuildings =
                     False
 
                 _ ->
-                    let
-                        _ =
-                            Debug.log "hasDestroyedMonument: _ -> " ( fName, b )
-                    in
                     True
-         -- case b of
-         --     Building bType _ bLevel ->
-         --         case ( pType, bType, bLevel ) of
-         --             ( ThoseWhoLove, MonumentOfUs _, Destroyed ) ->
-         --                 True
-         --             ( ThoseWhoPoison, MonumentOfThem _, Destroyed ) ->
-         --                 True
-         --             _ ->
-         --                 False
-         --     NoBuilding ->
-         --         False
         )
         pBuildings
 
 
-updateGameState : { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String } -> { a | p1 : Faction, p2 : Faction, gameState : GameState, log : String }
-updateGameState ({ p1, p2, gameState } as model) =
+updateGameState : { a | p1 : Faction, p2 : Faction, gameState : GameState } -> { a | p1 : Faction, p2 : Faction, gameState : GameState }
+updateGameState ({ p1, p2 } as model) =
     let
         (Faction p1FactionName p1Buildings p1People) =
             p1
@@ -198,7 +183,7 @@ updateGameState ({ p1, p2, gameState } as model) =
             else
                 GameLevel
     in
-    { model | gameState = newGameState, log = Debug.toString ( p1FactionName, p1Buildings ) }
+    { model | gameState = newGameState }
 
 
 updatePeopleToChange : { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number }
@@ -734,7 +719,7 @@ bLevelToString bLevel =
 
 
 view : Model -> Html Msg
-view ({ round, p1, p2, attention, maxAttention, gameState, title, log } as model) =
+view ({ round, p1, p2, attention, maxAttention, gameState, title } as model) =
     Element.layout [] <|
         column [ width fill, height fill ]
             [ row [ centerX, centerY, padding 5 ] [ text (String.toUpper title) ]
