@@ -7,9 +7,10 @@ type Msg
     = EndRound
     | GiveAttention BuildingType BuildingAttention
     | SaveRandomInt Int
-    | Build BuildingType FactionName
+    | Build BuildingType FactionName Index
     | ChangeGameState GameState
 
+type alias Index = Int
 
 rollCmd : Cmd Msg
 rollCmd =

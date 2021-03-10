@@ -1,6 +1,7 @@
 module Update.Attention exposing (..)
 
 import Model exposing (..)
+import Array
 
 
 convertP1People : (List Person, number) -> number -> List Person -> List Person
@@ -210,15 +211,8 @@ newBuildingsAddGuard maxGuards playerBuildings =
         playerBuildings
 
 
-newBuildings : Buildings -> Buildings -> BuildingType -> Buildings
-newBuildings bldgs acc bType =
-    case bldgs of
-        [] ->
-            acc
+newBuildings : Buildings -> BuildingType -> Index -> Buildings
+newBuildings bldgs  bType bldgIndex  =    
+    Array.set bldgIndex (Building bType NoAttention Low) (Array.fromList bldgs) |> Array.toList
 
-        x :: xs ->
-            if x == NoBuilding then
-                Building bType NoAttention Low :: xs ++ acc
-
-            else
-                newBuildings xs (x :: acc) bType
+            
