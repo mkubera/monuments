@@ -15,6 +15,7 @@ import Element
         , none
         , padding
         , paddingEach
+        , paddingXY
         , paragraph
         , px
         , rgb255
@@ -702,7 +703,7 @@ bAttentionToDescription bType bAttention =
 
 bLevelToString : BuildingLevel -> String
 bLevelToString bLevel =
-    "lvl "
+    ""
         ++ (case bLevel of
                 Low ->
                     "1"
@@ -714,13 +715,21 @@ bLevelToString bLevel =
                     "3"
 
                 Destroyed ->
-                    "destroyed"
+                    "0"
            )
 
 
 view : Model -> Html Msg
 view ({ round, p1, p2, attention, maxAttention, gameState, title } as model) =
-    Element.layout [] <|
+    Element.layout
+        [ Background.color (rgb255 57 62 80)
+        , Font.color (rgb255 255 255 255)
+        , Font.family
+            [ Font.typeface "RobotoCondensed"
+            , Font.sansSerif
+            ]
+        ]
+    <|
         column [ width fill, height fill ]
             [ row [ centerX, centerY, padding 5 ] [ text (String.toUpper title) ]
             , case gameState of
@@ -868,14 +877,19 @@ viewBuildings fName fBuildings =
         List.indexedMap
             (\index bldg ->
                 let
-                    bldgBgColor =
-                        case bldg of
-                            Building bType _ _ ->
-                                bTypeToBgColor bType
+                    bldgColor =
+                        case fName of
+                            ThoseWhoLove ->
+                                rgb255 134 157 215
 
-                            NoBuilding ->
-                                rgba255 150 150 150 0.3
+                            ThoseWhoPoison ->
+                                rgb255 84 245 187
 
+                    -- case bldg of
+                    --     Building bType _ _ ->
+                    --         bTypeToBgColor bType
+                    --     NoBuilding ->
+                    --         rgba255 150 150 150 0.3
                     ( attentionBtn1, attentionBtn2, bDescription ) =
                         case fName of
                             ThoseWhoLove ->
@@ -918,19 +932,46 @@ viewBuildings fName fBuildings =
                         column
                             [ width (px boardBldgWidth)
                             , height fill
-                            , spacing 5
-                            , padding 20
-                            , Background.color bldgBgColor
                             , Font.size 16
                             ]
                             [ row [ width fill, spaceEvenly ]
                                 [ column [ alignLeft ] [ attentionBtn1 ]
                                 , column [ alignLeft ] [ attentionBtn2 ]
-                                , column [ alignRight ] [ el [] (text (bLevelToString bLevel)) ]
+                                , column
+                                    [ Border.color bldgColor
+                                    , Border.solid
+                                    , Border.width 1
+                                    , alignRight
+                                    , height fill
+                                    , width (px 20)
+                                    ]
+                                    [ el
+                                        [ centerX
+                                        , centerY
+                                        , Font.size 14
+                                        , Font.bold
+                                        , Font.color bldgColor
+                                        ]
+                                        (text (bLevelToString bLevel))
+                                    ]
                                 ]
-                            , row [ centerX ] [ text (bTypeToString bType) ]
-                            , bDescription
-                            , bGuards
+                            , row
+                                [ Border.color bldgColor
+                                , Border.solid
+                                , Border.width 1
+                                , width fill
+                                , height (px 100)
+                                ]
+                                [ column
+                                    [ centerX
+                                    , spacing 5
+                                    , width fill
+                                    ]
+                                    [ row [ centerX, Font.color bldgColor ] [ text (bTypeToString bType) ]
+                                    , bDescription
+                                    , bGuards
+                                    ]
+                                ]
                             ]
 
                     NoBuilding ->
@@ -958,7 +999,7 @@ viewBuildings fName fBuildings =
                             [ width (px boardBldgWidth)
                             , spacing 5
                             , padding 20
-                            , Background.color bldgBgColor
+                            , Background.color bldgColor
                             , Font.size 16
                             ]
                             [ row [ centerX ] [ text (String.toUpper "No Building") ]
