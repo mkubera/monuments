@@ -41,7 +41,7 @@ update msg model =
     case msg of
         EndRound ->
             ( model
-                |> updatePeopleToChange
+                |> updatePeopleToConvert
                 |> executeAttention
                 |> resetAttentionInBuildings
                 |> resetAttentionCount
@@ -187,8 +187,8 @@ updateGameState ({ p1, p2 } as model) =
     { model | gameState = newGameState }
 
 
-updatePeopleToChange : { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number }
-updatePeopleToChange ({ p1, p2, randomInt } as model) =
+updatePeopleToConvert : { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1 : Faction, p2 : Faction, randomInt : number, p1PeopleToChange : number, p2PeopleToChange : number }
+updatePeopleToConvert ({ p1, p2, randomInt } as model) =
     let
         (Faction p1Name p1Buildings p1People) =
             p1
