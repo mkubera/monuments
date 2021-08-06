@@ -9,6 +9,7 @@ type Msg
     | SaveRandomInt Int
     | Build BuildingType FactionName Index
     | ChangeGameState GameState
+    | StartGameOver
 
 
 type alias Index =
@@ -105,6 +106,13 @@ type GameState
     | GameLost
 
 
+type Phase
+    = BuildingPhase
+    | AttentionPhase
+    | ResolutionPhase
+    | OpponentPhase
+
+
 type alias Model =
     { round : Round
     , p1 : Faction
@@ -116,6 +124,7 @@ type alias Model =
     , p1PeopleToChange : PeopleCount
     , p2PeopleToChange : PeopleCount
     , gameState : GameState
+    , phase : Phase
     , randomInt : Int
     }
 
@@ -128,24 +137,29 @@ initialAttention =
     0
 
 
+initialData =
+    { round = 1
+    , p1 = initP1
+    , p2 = initP2
+    , maxAttention = bLevelToMaxAttention initP1MonumentLevel
+
+    -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
+    -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
+    -- BELOW: current player (no API data)
+    , title = "Monuments is what's going to remain of us"
+    , gameState = GameLevel
+    , phase = BuildingPhase
+    , attention = initialAttention
+    , maxGuards = 3
+    , randomInt = 0
+    , p1PeopleToChange = 0
+    , p2PeopleToChange = 0
+    }
+
+
 initialModel : () -> ( Model, Cmd Msg )
 initialModel _ =
-    ( { round = 1
-      , p1 = initP1
-      , p2 = initP2
-      , maxAttention = bLevelToMaxAttention initP1MonumentLevel
-
-      -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
-      -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
-      -- BELOW: current player (no API data)
-      , title = "Monuments is what's going to remain of us"
-      , gameState = GameLevel
-      , attention = initialAttention
-      , maxGuards = 3
-      , randomInt = 0
-      , p1PeopleToChange = 0
-      , p2PeopleToChange = 0
-      }
+    ( initialData
     , initialCmds
     )
 
@@ -221,3 +235,8 @@ initP2 =
         , Building SoulEngineers NoAttention Low
         ]
         (List.repeat 5 <| Person Poison)
+
+
+dummyBuilding : Building
+dummyBuilding =
+    NoBuilding
