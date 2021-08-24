@@ -10,6 +10,7 @@ type Msg
     | Build BuildingType FactionName Index
     | ChangeGameState GameState
     | StartGameOver
+    | Noop
 
 
 type alias Index =
@@ -134,17 +135,17 @@ noCmd =
 
 
 initialAttention =
-    0
+    convertMonumentLevelToMaxAttention initP1MonumentLevel
 
 
 initialData =
     { round = 1
     , p1 = initP1
     , p2 = initP2
-    , maxAttention = bLevelToMaxAttention initP1MonumentLevel
+    , maxAttention = initialAttention
 
-    -- , p1MaxAttention = (bLevelToMaxAttention initP1MonumentLevel)
-    -- , p2MaxAttention = (bLevelToMaxAttention initP2MonumentLevel)
+    -- , p1MaxAttention = (convertMonumentLevelToMaxAttention initP1MonumentLevel)
+    -- , p2MaxAttention = (convertMonumentLevelToMaxAttention initP2MonumentLevel)
     -- BELOW: current player (no API data)
     , title = "Monuments is what's going to remain of us"
     , gameState = GameLevel
@@ -176,7 +177,7 @@ initP2MonumentLevel =
     Low
 
 
-bLevelToMaxAttention bLevel =
+convertMonumentLevelToMaxAttention bLevel =
     case bLevel of
         Low ->
             1

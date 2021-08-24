@@ -1,37 +1,9 @@
 module Main exposing (main)
 
--- import Element.Background as Background
--- import Element.Font as Font
--- import Element.Region as Region
--- import Element
---     exposing
---         ( Element
---         , alignLeft
---         , alignRight
---         , centerX
---         , centerY
---         , column
---         , el
---         , fill
---         , height
---         , none
---         , padding
---         , paddingEach
---         , paddingXY
---         , paragraph
---         , px
---         , rgb255
---         , rgba255
---         , row
---         , spaceEvenly
---         , spacing
---         , text
---         , width
---         )
-
 import Browser
 import Model exposing (..)
 import Update.Attention exposing (..)
+import Update.Utils exposing (getP1BldgLevel, getP1Bldgs, getP1Monument)
 import View
 import View.Board.Faction exposing (..)
 import View.Ui exposing (..)
@@ -44,13 +16,13 @@ update msg model =
             ( model
                 |> updatePeopleToConvert
                 |> executeAttention
+                |> updateGameState
+                |> updateMaxAttention
+                |> updateAttention
                 |> resetAttentionInBuildings
-                |> resetAttentionCount
                 |> resetPeopleCounts
                 |> incrRoundCount
                 |> opponentActs
-                |> updateGameState
-                |> updateMaxAttention
             , Cmd.batch [ rollCmd ]
             )
 
@@ -97,37 +69,19 @@ update msg model =
         StartGameOver ->
             ( initialData, noCmd )
 
+        Noop ->
+            ( model, noCmd )
+
 
 updateMaxAttention : Model -> Model
 updateMaxAttention model =
     let
         monumentLevel =
-            let
-                (Faction _ fBuildings _) =
-                    model.p1
-            in
-            List.foldl
-                (\b acc ->
-                    case b of
-                        Building (MonumentOfUs _) _ bLevel ->
-                            case bLevel of
-                                Low ->
-                                    acc + 1
-
-                                Mid ->
-                                    acc + 2
-
-                                High ->
-                                    acc + 3
-
-                                Destroyed ->
-                                    acc + 0
-
-                        _ ->
-                            acc + 0
-                )
-                0
-                fBuildings
+            model.p1
+                |> getP1Bldgs
+                |> getP1Monument
+                |> getP1BldgLevel
+                |> convertMonumentLevelToMaxAttention
     in
     { model | maxAttention = monumentLevel }
 
@@ -553,9 +507,9 @@ incrRoundCount ({ round } as model) =
     { model | round = round + 1 }
 
 
-resetAttentionCount : { a | attention : number } -> { a | attention : number }
-resetAttentionCount model =
-    { model | attention = initialAttention }
+updateAttention : Model -> Model
+updateAttention model =
+    { model | attention = model.maxAttention }
 
 
 resetPeopleCounts : { a | p1PeopleToChange : number, p2PeopleToChange : number } -> { a | p1PeopleToChange : number, p2PeopleToChange : number }

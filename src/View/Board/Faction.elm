@@ -6,18 +6,18 @@ import View.Board.Buildings exposing (..)
 import View.Board.People exposing (..)
 
 
-viewFaction : Faction -> Element Msg
-viewFaction (Faction fName fBuildings fPeople) =
+viewFaction : Phase -> Faction -> Element Msg
+viewFaction phase (Faction fName fBuildings fPeople) =
     row []
         [ column [] <|
             case fName of
                 ThoseWhoLove ->
-                    [ viewBuildings fName fBuildings
+                    [ viewBuildings phase fName fBuildings
                     , viewPeople fPeople ThoseWhoLove
                     ]
 
                 ThoseWhoPoison ->
                     [ viewPeople fPeople ThoseWhoPoison
-                    , viewBuildings fName fBuildings
+                    , viewBuildings phase fName fBuildings
                     ]
         ]

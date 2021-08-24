@@ -188,8 +188,23 @@ bAttentionToDescription bType bAttention =
                 ++ descriptions.animus.monumentOfThem
 
 
-viewBuildings : FactionName -> List Building -> Element Msg
-viewBuildings fName fBuildings =
+btnGiveAttention phase btnType bType bAttention =
+    case phase of
+        BuildingPhase ->
+            el [ attrCursorDefault, padding 4, Border.color (rgb255 0 0 0) ] (text (bAttentionToString btnType bAttention))
+
+        AttentionPhase ->
+            btn [] (GiveAttention bType btnType) (bAttentionToString btnType bAttention)
+
+        ResolutionPhase ->
+            btn [] Noop (bAttentionToString btnType bAttention)
+
+        OpponentPhase ->
+            btn [] Noop (bAttentionToString btnType bAttention)
+
+
+viewBuildings : Phase -> FactionName -> List Building -> Element Msg
+viewBuildings phase fName fBuildings =
     row
         [ width (px boardWidth)
         , centerX
@@ -208,18 +223,15 @@ viewBuildings fName fBuildings =
                             ThoseWhoPoison ->
                                 rgb255 84 245 187
 
-                    -- case bldg of
-                    --     Building bType _ _ ->
-                    --         bTypeToBgColor bType
-                    --     NoBuilding ->
-                    --         rgba255 150 150 150 0.3
                     ( attentionBtn1, attentionBtn2, bDescription ) =
                         case fName of
                             ThoseWhoLove ->
                                 case bldg of
                                     Building bType bAttention _ ->
-                                        ( btn [] (GiveAttention bType Anima) (bAttentionToString Anima bAttention)
-                                        , btn [] (GiveAttention bType Animus) (bAttentionToString Animus bAttention)
+                                        ( btnGiveAttention phase Anima bType bAttention
+                                        , btnGiveAttention phase Animus bType bAttention
+                                          --   btn [] (GiveAttention bType Anima) (bAttentionToString Anima bAttention)
+                                          -- , btn [] (GiveAttention bType Animus) (bAttentionToString Animus bAttention)
                                         , row [ width fill, centerX, Font.size 14, Font.center ]
                                             [ paragraph [] [ text (bAttentionToDescription bType bAttention) ] ]
                                         )
