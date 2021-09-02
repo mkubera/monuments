@@ -9,13 +9,16 @@ import Model exposing (..)
 import View.Model exposing (..)
 
 
+colors : { neutralBg : Color }
 colors =
     { neutralBg = rgb255 133 133 170
     }
 
 
+btnAttrs : { endTurn : List (Attr decorative msg), endPhase : List (Attr a b) }
 btnAttrs =
     { endTurn = [ Background.color colors.neutralBg ]
+    , endPhase = [ Background.color colors.neutralBg ]
     }
 
 
@@ -32,6 +35,7 @@ attrCursorDefault =
     Element.htmlAttribute (Html.Attributes.attribute "cursor" "default")
 
 
+phaseToString : Phase -> String
 phaseToString phase =
     let
         phaseString =

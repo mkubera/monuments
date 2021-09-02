@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Browser
+import Html exposing (b)
 import Model exposing (..)
 import Update.Attention exposing (..)
 import Update.Utils exposing (getP1BldgLevel, getP1Bldgs, getP1Monument)
@@ -26,12 +27,35 @@ update msg model =
             , Cmd.batch [ rollCmd ]
             )
 
+        EndPhase ->
+            let
+                nextPhase =
+                    case model.phase of
+                        BuildingPhase ->
+                            AttentionPhase
+
+                        AttentionPhase ->
+                            ResolutionPhase
+
+                        ResolutionPhase ->
+                            OpponentPhase
+
+                        OpponentPhase ->
+                            BuildingPhase
+            in
+            ( { model | phase = nextPhase }, noCmd )
+
         GiveAttention buildingType buildingAttention ->
-            ( model
-                |> validateStart
-                |> Maybe.andThen validateHasEnoughAttention
-                |> Maybe.map (giveAttention buildingType buildingAttention)
-                |> validateEnd model
+            ( if playerHasEnoughAttention model then
+                model
+                    |> giveAttention buildingType buildingAttention
+
+              else
+                model
+              -- |> validateStart
+              -- |> Maybe.andThen validateHasEnoughAttention
+              -- |> Maybe.map (giveAttention buildingType buildingAttention)
+              -- |> validateEnd model
             , noCmd
             )
 
@@ -347,6 +371,11 @@ giveNoAttention building =
             building
 
 
+playerHasEnoughAttention : Model -> Bool
+playerHasEnoughAttention model =
+    model.attention <= model.maxAttention
+
+
 validateHasEnoughAttention : Model -> Maybe Model
 validateHasEnoughAttention model =
     if model.attention <= model.maxAttention then
@@ -371,6 +400,27 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
     let
         (Faction fName fBuildings fPeople) =
             p1
+
+        wtf =
+            getP1Bldgs p1
+                |> getP1Monument
+                |> (\b ->
+                        case b of
+                            Building bType bAttention _ ->
+                                case ( bType, newAttentionType, bAttention ) of
+                                    ( MonumentOfUs _, Anima, NoAttention ) ->
+                                        if attention < maxAttention then
+                                            "ok"
+
+                                        else
+                                            "not ok"
+
+                                    _ ->
+                                        "nope"
+
+                            NoBuilding ->
+                                "no bldg"
+                   )
 
         newBuildings =
             -- CHANGE the targetted building's attention
@@ -499,6 +549,7 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
     { model
         | p1 = Faction fName newBuildings fPeople
         , attention = newAttention
+        , log = wtf
     }
 
 

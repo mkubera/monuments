@@ -188,6 +188,7 @@ bAttentionToDescription bType bAttention =
                 ++ descriptions.animus.monumentOfThem
 
 
+btnGiveAttention : Phase -> BuildingAttention -> BuildingType -> BuildingAttention -> Element Msg
 btnGiveAttention phase btnType bType bAttention =
     case phase of
         BuildingPhase ->

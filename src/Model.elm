@@ -5,6 +5,7 @@ import Random
 
 type Msg
     = EndRound
+    | EndPhase
     | GiveAttention BuildingType BuildingAttention
     | SaveRandomInt Int
     | Build BuildingType FactionName Index
@@ -127,6 +128,7 @@ type alias Model =
     , gameState : GameState
     , phase : Phase
     , randomInt : Int
+    , log : String
     }
 
 
@@ -134,7 +136,15 @@ noCmd =
     Cmd.batch []
 
 
+initialAttention : number
 initialAttention =
+    -- initialAttention always starts with 0
+    -- meaning: player hasn't used any attention yet
+    0
+
+
+initialMaxAttention : number
+initialMaxAttention =
     convertMonumentLevelToMaxAttention initP1MonumentLevel
 
 
@@ -142,7 +152,7 @@ initialData =
     { round = 1
     , p1 = initP1
     , p2 = initP2
-    , maxAttention = initialAttention
+    , maxAttention = initialMaxAttention
 
     -- , p1MaxAttention = (convertMonumentLevelToMaxAttention initP1MonumentLevel)
     -- , p2MaxAttention = (convertMonumentLevelToMaxAttention initP2MonumentLevel)
@@ -155,6 +165,7 @@ initialData =
     , randomInt = 0
     , p1PeopleToChange = 0
     , p2PeopleToChange = 0
+    , log = ""
     }
 
 
