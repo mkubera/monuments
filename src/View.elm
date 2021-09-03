@@ -7,7 +7,7 @@ import Html exposing (Html)
 import Model exposing (..)
 import View.Board.Faction exposing (..)
 import View.Model exposing (PaddingEach)
-import View.Ui exposing (btn, btnAttrs, phaseToString)
+import View.Ui exposing (btn, btnAttrs, endTurnBtn, phaseToString)
 
 
 view : Model -> Html Msg
@@ -69,7 +69,7 @@ view ({ round, p1, p2, attention, maxAttention, gameState, phase, title, log } a
                                 )
                             ]
                         , row [ padding 5, centerX ]
-                            [ btn btnAttrs.endTurn EndRound "End Round"
+                            [ endTurnBtn phase btnAttrs.endTurn EndRound "End Round"
                             ]
                         , row [ padding 5, centerX ]
                             [ text log

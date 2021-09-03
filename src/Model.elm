@@ -111,8 +111,11 @@ type GameState
 type Phase
     = BuildingPhase
     | AttentionPhase
-    | ResolutionPhase
-    | OpponentPhase
+
+
+
+-- | ResolutionPhase
+-- | OpponentPhase
 
 
 type alias Model =
@@ -138,9 +141,7 @@ noCmd =
 
 initialAttention : number
 initialAttention =
-    -- initialAttention always starts with 0
-    -- meaning: player hasn't used any attention yet
-    0
+    convertMonumentLevelToMaxAttention initP1MonumentLevel
 
 
 initialMaxAttention : number

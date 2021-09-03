@@ -197,11 +197,12 @@ btnGiveAttention phase btnType bType bAttention =
         AttentionPhase ->
             btn [] (GiveAttention bType btnType) (bAttentionToString btnType bAttention)
 
-        ResolutionPhase ->
-            btn [] Noop (bAttentionToString btnType bAttention)
 
-        OpponentPhase ->
-            btn [] Noop (bAttentionToString btnType bAttention)
+
+-- ResolutionPhase ->
+--     btn [] Noop (bAttentionToString btnType bAttention)
+-- OpponentPhase ->
+--     btn [] Noop (bAttentionToString btnType bAttention)
 
 
 viewBuildings : Phase -> FactionName -> List Building -> Element Msg

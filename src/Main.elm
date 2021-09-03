@@ -10,6 +10,45 @@ import View.Board.Faction exposing (..)
 import View.Ui exposing (..)
 
 
+p1CanBuildBuildings : Faction -> Bool
+p1CanBuildBuildings p1 =
+    p1
+        |> getP1Bldgs
+        |> List.any
+            (\b ->
+                case b of
+                    Building _ _ _ ->
+                        False
+
+                    NoBuilding ->
+                        True
+            )
+
+
+nextPhase : Model -> Model
+nextPhase ({ phase, p1 } as model) =
+    let
+        newPhase =
+            case phase of
+                BuildingPhase ->
+                    AttentionPhase
+
+                AttentionPhase ->
+                    -- ResolutionPhase
+                    if p1CanBuildBuildings p1 then
+                        BuildingPhase
+
+                    else
+                        AttentionPhase
+
+        -- ResolutionPhase ->
+        --     OpponentPhase
+        -- OpponentPhase ->
+        --     BuildingPhase
+    in
+    { model | phase = newPhase }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -20,30 +59,19 @@ update msg model =
                 |> updateGameState
                 |> updateMaxAttention
                 |> updateAttention
-                |> resetAttentionInBuildings
                 |> resetPeopleCounts
+                |> resetAttentionInBuildings
                 |> incrRoundCount
+                |> nextPhase
                 |> opponentActs
             , Cmd.batch [ rollCmd ]
             )
 
         EndPhase ->
-            let
-                nextPhase =
-                    case model.phase of
-                        BuildingPhase ->
-                            AttentionPhase
-
-                        AttentionPhase ->
-                            ResolutionPhase
-
-                        ResolutionPhase ->
-                            OpponentPhase
-
-                        OpponentPhase ->
-                            BuildingPhase
-            in
-            ( { model | phase = nextPhase }, noCmd )
+            ( model
+                |> nextPhase
+            , noCmd
+            )
 
         GiveAttention buildingType buildingAttention ->
             ( if playerHasEnoughAttention model then
@@ -409,7 +437,7 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
                             Building bType bAttention _ ->
                                 case ( bType, newAttentionType, bAttention ) of
                                     ( MonumentOfUs _, Anima, NoAttention ) ->
-                                        if attention < maxAttention then
+                                        if attention <= maxAttention && attention > 0 then
                                             "ok"
 
                                         else
@@ -431,14 +459,14 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
                             if bType == buildingType then
                                 case ( newAttentionType, bAttention ) of
                                     ( Anima, NoAttention ) ->
-                                        if attention < maxAttention then
+                                        if attention <= maxAttention && attention > 0 then
                                             Building bType Anima bLevel
 
                                         else
                                             b
 
                                     ( Animus, NoAttention ) ->
-                                        if attention < maxAttention then
+                                        if attention <= maxAttention && attention > 0 then
                                             Building bType Animus bLevel
 
                                         else
@@ -451,14 +479,14 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
                                         Building bType NoAttention bLevel
 
                                     ( Anima, Animus ) ->
-                                        if attention < maxAttention then
+                                        if attention <= maxAttention && attention > 0 then
                                             Building bType AnimaAnimus bLevel
 
                                         else
                                             b
 
                                     ( Animus, Anima ) ->
-                                        if attention < maxAttention then
+                                        if attention <= maxAttention && attention > 0 then
                                             Building bType AnimaAnimus bLevel
 
                                         else
@@ -487,7 +515,7 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
                 |> List.filter
                     (\b ->
                         case b of
-                            Building bType bAttention _ ->
+                            Building bType _ _ ->
                                 bType == buildingType
 
                             NoBuilding ->
@@ -501,44 +529,44 @@ giveAttention buildingType newAttentionType ({ p1, attention, maxAttention } as 
                 Building _ bAttention_ _ ->
                     case ( newAttentionType, bAttention_ ) of
                         ( Anima, NoAttention ) ->
-                            if attention < maxAttention then
-                                attention + 1
+                            if attention <= maxAttention && attention > 0 then
+                                attention - 1
 
                             else
                                 attention
 
                         ( Animus, NoAttention ) ->
-                            if attention < maxAttention then
-                                attention + 1
+                            if attention <= maxAttention && attention > 0 then
+                                attention - 1
 
                             else
                                 attention
 
                         ( Anima, Anima ) ->
-                            attention - 1
+                            attention + 1
 
                         ( Animus, Animus ) ->
-                            attention - 1
+                            attention + 1
 
                         ( Anima, Animus ) ->
-                            if attention < maxAttention then
-                                attention + 1
+                            if attention <= maxAttention && attention > 0 then
+                                attention - 1
 
                             else
                                 attention
 
                         ( Animus, Anima ) ->
-                            if attention < maxAttention then
-                                attention + 1
+                            if attention <= maxAttention && attention > 0 then
+                                attention - 1
 
                             else
                                 attention
 
                         ( Anima, AnimaAnimus ) ->
-                            attention - 1
+                            attention + 1
 
                         ( Animus, AnimaAnimus ) ->
-                            attention - 1
+                            attention + 1
 
                         _ ->
                             attention

@@ -1,4 +1,4 @@
-module View.Ui exposing (attrCursorDefault, btn, btnAttrs, phaseToString)
+module View.Ui exposing (attrCursorDefault, btn, btnAttrs, endTurnBtn, phaseToString)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -30,6 +30,19 @@ btn attrs msg txt =
         }
 
 
+endTurnBtn : Phase -> List (Element.Attribute msg) -> msg -> String -> Element msg
+endTurnBtn phase attrs msg txt =
+    case phase of
+        AttentionPhase ->
+            Input.button (attrs ++ [ padding 4, Border.color (rgb255 0 0 0) ])
+                { onPress = Just msg
+                , label = text txt
+                }
+
+        _ ->
+            none
+
+
 attrCursorDefault : Element.Attribute msg
 attrCursorDefault =
     Element.htmlAttribute (Html.Attributes.attribute "cursor" "default")
@@ -46,10 +59,9 @@ phaseToString phase =
                 AttentionPhase ->
                     "Attention"
 
-                ResolutionPhase ->
-                    "Resolution"
-
-                OpponentPhase ->
-                    "Opponent"
+        -- ResolutionPhase ->
+        --     "Resolution"
+        -- OpponentPhase ->
+        --     "Opponent"
     in
     "Phase: " ++ phaseString
